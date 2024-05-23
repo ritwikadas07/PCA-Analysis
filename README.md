@@ -22,9 +22,8 @@ The primary difference between the two codes lies in the vectorization method us
 
 ## Previous Result with Vectorization Method used - TD-IDF
 
-<p align="center">
-<img src="/images/image1.png" "Packet Structure">
-</p>
+![Previous 3D plot](https://github.com/ritwikadas07/PCA-Analysis/issues/1#issue-2313980898)
+
 
 
 ### Word Embeddings
