@@ -22,9 +22,9 @@ The primary difference between the two codes lies in the vectorization method us
 
 ## Previous Result with Vectorization Method used - TD-IDF
 
-![Previous 3D plot](https://github.com/ritwikadas07/PCA-Analysis/issues/1#issue-2313980898)
-
-
+<p align="center">
+<img src="https://github.com/ritwikadas07/PCA-Analysis/assets/144871975/b0c9c64a-4d5a-4fb3-bc5a-068b15f41f65" "Packet Structure">
+</p>
 
 ### Word Embeddings
 
@@ -34,13 +34,14 @@ The primary difference between the two codes lies in the vectorization method us
 ## Result with Vectorization Method used - TD-IDF
 
 <p align="center">
-<img src="https://github.com/ritwikadas07/PCA-Analysis/assets/144871975/b0c9c64a-4d5a-4fb3-bc5a-068b15f41f65" "Packet Structure">
+<img src="https://github.com/ritwikadas07/PCA-Analysis/assets/144871975/bc95f01d-deef-4c23-aff3-a502f8f86245" "Packet Structure">
 </p>
 
 ## Purpose and Advantage of Word Embeddings
 
 Word embeddings serve a better purpose in this case because they capture semantic relationships between words. Words that are semantically similar (e.g., "cats" and "dogs") have similar embeddings and, therefore, close eigenvalues when PCA is applied. This semantic proximity is beneficial for understanding the contextual relevance and relationships between words in the text data.
 
-## Decision Rationale
+## Conclusion
 
 Due to the advantages of word embeddings in capturing semantic meaning, the approach using GloVe embeddings was chosen. This method ensures that semantically related words are positioned closely in the vector space, leading to more meaningful PCA visualizations and better insights into the text data. By contrast, TF-IDF focuses on word frequency and importance but does not account for semantic relationships, which can limit the analysis, especially for tasks requiring an understanding of word meanings and contexts.
+There however needs to be more changes applied for code improvement. This is the initial stage of the code of PCA implementation.
