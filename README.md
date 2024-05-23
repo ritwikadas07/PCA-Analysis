@@ -34,7 +34,7 @@ The primary difference between the two codes lies in the vectorization method us
 ## Result with Vectorization Method used - TD-IDF
 
 <p align="center">
-<img src="/images/image2.png" "Packet Structure">
+<img src="https://github.com/ritwikadas07/PCA-Analysis/assets/144871975/b0c9c64a-4d5a-4fb3-bc5a-068b15f41f65" "Packet Structure">
 </p>
 
 ## Purpose and Advantage of Word Embeddings
