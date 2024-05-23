@@ -45,3 +45,11 @@ Word embeddings serve a better purpose in this case because they capture semanti
 
 Due to the advantages of word embeddings in capturing semantic meaning, the approach using GloVe embeddings was chosen. This method ensures that semantically related words are positioned closely in the vector space, leading to more meaningful PCA visualizations and better insights into the text data. By contrast, TF-IDF focuses on word frequency and importance but does not account for semantic relationships, which can limit the analysis, especially for tasks requiring an understanding of word meanings and contexts.
 There however needs to be more changes applied for code improvement. This is the initial stage of the code of PCA implementation.
+
+
+## Steps to download the GloVe Embeddings:##
+To use the GloVe embeddings in the code, you need to download the `glove.6B.300d.txt` file, following these steps:
+   - Visit the [GloVe website](https://nlp.stanford.edu/projects/glove/).
+   - Scroll down to the section titled "Pre-trained word vectors".
+   - Click on the link to download the "glove.6B.zip" file, which contains the embeddings trained on Wikipedia 2014 and Gigaword 5.
+
