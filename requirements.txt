@@ -2,7 +2,7 @@ streamlit
 nltk
 numpy
 pandas
-matplotlib
+matplotlib==3.5.0
 mpl_toolkits
 requests 
 tqdm 
