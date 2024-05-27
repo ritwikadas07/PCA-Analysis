@@ -44,12 +44,17 @@ def main():
         target_words = st.text_input("Enter target words (comma-separated):")
         target_words = [word.strip() for word in target_words.split(',')]
         
+        # Debug output
+        st.write("Target words:", target_words)
+
         word_embeddings = []
         for word in target_words:
             if word in word2vec_model.wv:
                 word_embeddings.append(word2vec_model.wv[word])
             else:
                 st.warning(f"Word '{word}' not found in vocabulary.")
+        st.write("Word embeddings:", word_embeddings)
+
         word_embeddings = np.array(word_embeddings)
         
         # Normalize word embeddings
