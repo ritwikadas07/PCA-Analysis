@@ -52,7 +52,13 @@ def main():
                 st.warning(f"Word '{word}' not found in vocabulary.")
         word_embeddings = np.array(word_embeddings)
         
+        # Normalize word embeddings
+        st.write("Shape of word embeddings before normalization:", word_embeddings.shape)
+        if len(word_embeddings.shape) == 1:
+            word_embeddings = word_embeddings.reshape(-1, 1)
         word_embeddings /= np.linalg.norm(word_embeddings, axis=1, keepdims=True)
+        st.write("Shape of word embeddings after normalization:", word_embeddings.shape)
+
         
         pca = PCA(n_components=3)
         try:
