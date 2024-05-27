@@ -5,88 +5,76 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import requests
-import zipfile
-import os 
-from tqdm import tqdm
+from sklearn.decomposition import PCA
+from gensim.models import Word2Vec
 
 nltk.download('punkt')
 nltk.download('wordnet')
 
-def download_and_unzip(url, file_to_extract):
-    # Extract file name from URL
-    filename = url.split('/')[-1]
-    
-    # Make a GET request to the URL, stream the response
-    print("Downloading GloVe Vectors file")
-    response = requests.get(url, stream=True)
-    print("Finished downloading GloVe Vectors file")
-    
-    # Get the total file size in bytes
-    total_size_in_bytes = int(response.headers.get('content-length', 0))
-    block_size = 1024  # 1 Kibibyte
-    
-    # Initialize the progress bar
-    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
-    
-    # Download and write data to file
-    with open(filename, 'wb') as f:
-        for data in response.iter_content(block_size):
-            progress_bar.update(len(data))
-            f.write(data)
-    
-    # Close the progress bar
-    progress_bar.close()
-    
-    # Unzip the file
-    with zipfile.ZipFile(filename, 'r') as zip_ref:
-        zip_ref.extract(file_to_extract)
-    
-    # Delete the zip file
-    os.remove(filename)
-
 def process_text(text):
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
-    return ' '.join([lemmatizer.lemmatize(token) for token in tokens])
+    return [lemmatizer.lemmatize(token.lower()) for token in tokens]
 
-def load_glove_embeddings(file_path):
-    embeddings_index = {}
-    with open(file_path, 'r', encoding='utf8') as f:
-        for line in f:
-            values = line.split()
-            word = values[0]
-            coefs = np.asarray(values[1:], dtype='float32')
-            embeddings_index[word] = coefs
-    return embeddings_index
+def calculate_distances(points):
+    num_points = points.shape[0]
+    distances = np.zeros((num_points, num_points))
+    for i in range(num_points):
+        for j in range(i + 1, num_points):
+            distances[i, j] = np.linalg.norm(points[i] - points[j])
+            distances[j, i] = distances[i, j]
+    return distances
 
 def main():
-    download_and_unzip("https://downloads.cs.stanford.edu/nlp/data/glove.6B.zip", "glove.6B.300d.txt")
-    
     csv_file_path = "sample_text_data.csv"
     df = pd.read_csv(csv_file_path)
-
+    
     processed_corpus = [process_text(text) for text in df['text']]
     
-    glove_path = 'glove.6B.300d.txt'  # Adjust the path as necessary
-    embeddings_index = load_glove_embeddings(glove_path)
-
-    # Get embeddings for specific words
-    target_words = ['cats', 'dogs', 'computers']
-    word_embeddings = np.array([embeddings_index[word] for word in target_words if word in embeddings_index])
-
-    from sklearn.decomposition import PCA
+    # Train a Word2Vec model on the processed corpus
+    try:
+        word2vec_model = Word2Vec(sentences=processed_corpus, vector_size=300, window=10, min_count=1, workers=4, epochs=200)
+    except Exception as e:
+        print(f"Error training Word2Vec model: {e}")
+        return
+    
+    # Get embeddings for target words
+    target_words = ['cat', 'dog', 'computer']
+    word_embeddings = []
+    for word in target_words:
+        if word in word2vec_model.wv:
+            word_embeddings.append(word2vec_model.wv[word])
+        else:
+            print(f"Word '{word}' not found in vocabulary.")
+    word_embeddings = np.array(word_embeddings)
+    
+    # Normalize word embeddings
+    word_embeddings /= np.linalg.norm(word_embeddings, axis=1, keepdims=True)
+    
+    # Perform PCA to reduce dimensionality
     pca = PCA(n_components=3)
-    pca_result = pca.fit_transform(word_embeddings)
-
+    try:
+        pca_result = pca.fit_transform(word_embeddings)
+    except Exception as e:
+        print(f"Error performing PCA: {e}")
+        return
+    
+    # Calculate distances between the points
+    distances = calculate_distances(pca_result)
+    print("Distances between points:")
+    for i, word1 in enumerate(target_words):
+        for j, word2 in enumerate(target_words):
+            if i < j:
+                print(f"Distance between {word1} and {word2}: {distances[i, j]:.4f}")
+    
+    # Plot the 3D PCA result
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     
     for idx, word in enumerate(target_words):
-        if word in embeddings_index:
-            ax.scatter(pca_result[idx, 0], pca_result[idx, 1], pca_result[idx, 2], color='blue')
-            ax.text(pca_result[idx, 0], pca_result[idx, 1], pca_result[idx, 2], word, color='red', fontsize=12)
-            
+        ax.scatter(pca_result[idx, 0], pca_result[idx, 1], pca_result[idx, 2], color='blue')
+        ax.text(pca_result[idx, 0], pca_result[idx, 1], pca_result[idx, 2], word, color='red', fontsize=12)
+    
     ax.set_xlabel('PCA1')
     ax.set_ylabel('PCA2')
     ax.set_zlabel('PCA3')
