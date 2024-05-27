@@ -1,3 +1,4 @@
+import streamlit as st
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
@@ -26,61 +27,60 @@ def calculate_distances(points):
     return distances
 
 def main():
-    csv_file_path = "sample_text_data.csv"
-    df = pd.read_csv(csv_file_path)
+    st.title("Word Embeddings Visualization")
     
-    processed_corpus = [process_text(text) for text in df['text']]
-    
-    # Train a Word2Vec model on the processed corpus
-    try:
-        word2vec_model = Word2Vec(sentences=processed_corpus, vector_size=300, window=10, min_count=1, workers=4, epochs=200)
-    except Exception as e:
-        print(f"Error training Word2Vec model: {e}")
-        return
-    
-    # Get embeddings for target words
-    target_words = ['cat', 'dog', 'computer']
-    word_embeddings = []
-    for word in target_words:
-        if word in word2vec_model.wv:
-            word_embeddings.append(word2vec_model.wv[word])
-        else:
-            print(f"Word '{word}' not found in vocabulary.")
-    word_embeddings = np.array(word_embeddings)
-    
-    # Normalize word embeddings
-    word_embeddings /= np.linalg.norm(word_embeddings, axis=1, keepdims=True)
-    
-    # Perform PCA to reduce dimensionality
-    pca = PCA(n_components=3)
-    try:
-        pca_result = pca.fit_transform(word_embeddings)
-    except Exception as e:
-        print(f"Error performing PCA: {e}")
-        return
-    
-    # Calculate distances between the points
-    distances = calculate_distances(pca_result)
-    print("Distances between points:")
-    for i, word1 in enumerate(target_words):
-        for j, word2 in enumerate(target_words):
-            if i < j:
-                print(f"Distance between {word1} and {word2}: {distances[i, j]:.4f}")
-    
-    # Plot the 3D PCA result
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    
-    for idx, word in enumerate(target_words):
-        ax.scatter(pca_result[idx, 0], pca_result[idx, 1], pca_result[idx, 2], color='blue')
-        ax.text(pca_result[idx, 0], pca_result[idx, 1], pca_result[idx, 2], word, color='red', fontsize=12)
-    
-    ax.set_xlabel('PCA1')
-    ax.set_ylabel('PCA2')
-    ax.set_zlabel('PCA3')
-    ax.set_title('3D PCA of Word Embeddings')
-    
-    plt.show()
+    uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file)
+        
+        processed_corpus = [process_text(text) for text in df['text']]
+        
+        try:
+            word2vec_model = Word2Vec(sentences=processed_corpus, vector_size=300, window=10, min_count=1, workers=4, epochs=200)
+        except Exception as e:
+            st.error(f"Error training Word2Vec model: {e}")
+            return
+        
+        target_words = st.text_input("Enter target words (comma-separated):")
+        target_words = [word.strip() for word in target_words.split(',')]
+        
+        word_embeddings = []
+        for word in target_words:
+            if word in word2vec_model.wv:
+                word_embeddings.append(word2vec_model.wv[word])
+            else:
+                st.warning(f"Word '{word}' not found in vocabulary.")
+        word_embeddings = np.array(word_embeddings)
+        
+        word_embeddings /= np.linalg.norm(word_embeddings, axis=1, keepdims=True)
+        
+        pca = PCA(n_components=3)
+        try:
+            pca_result = pca.fit_transform(word_embeddings)
+        except Exception as e:
+            st.error(f"Error performing PCA: {e}")
+            return
+        
+        distances = calculate_distances(pca_result)
+        st.subheader("Distances between points:")
+        for i, word1 in enumerate(target_words):
+            for j, word2 in enumerate(target_words):
+                if i < j:
+                    st.write(f"Distance between {word1} and {word2}: {distances[i, j]:.4f}")
+        
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        
+        for idx, word in enumerate(target_words):
+            ax.scatter(pca_result[idx, 0], pca_result[idx, 1], pca_result[idx, 2], color='blue')
+            ax.text(pca_result[idx, 0], pca_result[idx, 1], pca_result[idx, 2], word, color='red', fontsize=12)
+        
+        ax.set_xlabel('PCA1')
+        ax.set_ylabel('PCA2')
+        ax.set_zlabel('PCA3')
+        ax.set_title('3D PCA of Word Embeddings')
+        
+        st.pyplot(fig)
 
 if __name__ == "__main__":
     main()
