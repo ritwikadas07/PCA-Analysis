@@ -4,10 +4,9 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from sklearn.decomposition import PCA
 from gensim.models import Word2Vec
+import plotly.graph_objs as go
 
 nltk.download('punkt')
 nltk.download('wordnet')
@@ -44,7 +43,6 @@ def main():
         target_words = st.text_input("Enter target words (comma-separated):")
         target_words = [word.strip() for word in target_words.split(',')]
         
-        # Debug output
         st.write("Target words:", target_words)
 
         word_embeddings = []
@@ -57,14 +55,12 @@ def main():
 
         word_embeddings = np.array(word_embeddings)
         
-        # Normalize word embeddings
         st.write("Shape of word embeddings before normalization:", word_embeddings.shape)
         if len(word_embeddings.shape) == 1:
             word_embeddings = word_embeddings.reshape(-1, 1)
         word_embeddings /= np.linalg.norm(word_embeddings, axis=1, keepdims=True)
         st.write("Shape of word embeddings after normalization:", word_embeddings.shape)
 
-        
         pca = PCA(n_components=3)
         try:
             pca_result = pca.fit_transform(word_embeddings)
@@ -79,19 +75,29 @@ def main():
                 if i < j:
                     st.write(f"Distance between {word1} and {word2}: {distances[i, j]:.4f}")
         
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        
+        fig = go.Figure()
+
         for idx, word in enumerate(target_words):
-            ax.scatter(pca_result[idx, 0], pca_result[idx, 1], pca_result[idx, 2], color='blue')
-            ax.text(pca_result[idx, 0], pca_result[idx, 1], pca_result[idx, 2], word, color='red', fontsize=12)
+            fig.add_trace(go.Scatter3d(
+                x=[pca_result[idx, 0]], 
+                y=[pca_result[idx, 1]], 
+                z=[pca_result[idx, 2]],
+                mode='markers+text',
+                marker=dict(size=5, color='blue'),
+                text=[word],
+                textposition='top center'
+            ))
+
+        fig.update_layout(
+            title='3D PCA of Word Embeddings',
+            scene=dict(
+                xaxis_title='PCA1',
+                yaxis_title='PCA2',
+                zaxis_title='PCA3'
+            )
+        )
         
-        ax.set_xlabel('PCA1')
-        ax.set_ylabel('PCA2')
-        ax.set_zlabel('PCA3')
-        ax.set_title('3D PCA of Word Embeddings')
-        
-        st.pyplot(fig)
+        st.plotly_chart(fig)
 
 if __name__ == "__main__":
     main()
